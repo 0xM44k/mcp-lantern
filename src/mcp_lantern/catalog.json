@@ -1,0 +1,43 @@
+{
+  "_comment": "Capability guesses derived from package/command names and general knowledge of each server. They are NOT read from the servers' real tool lists. confidence: medium = well-known server whose purpose is documented; low = keyword guess. Extend with --annotate.",
+  "roles": {
+    "untrusted_input": "Brings text written by third parties into the model's context (web pages, issues, email, chat).",
+    "private_data": "Can read data that is private to you (local files, databases, private repositories, mail).",
+    "egress": "Can send data to someone else (outbound HTTP, messages, email, public comments or pushes, browser navigation).",
+    "exec": "Can run commands or code on your machine.",
+    "write": "Can modify or delete local data or remote records."
+  },
+  "servers": [
+    {"id": "filesystem", "match": ["server-filesystem", "mcp-server-filesystem"], "caps": ["private_data", "write"], "confidence": "medium", "note": "Reads and writes files under the directories passed as arguments."},
+    {"id": "fetch", "match": ["mcp-server-fetch", "server-fetch"], "caps": ["untrusted_input", "egress"], "confidence": "medium", "note": "Fetches arbitrary URLs: attacker-controlled page text in, outbound requests out."},
+    {"id": "github", "match": ["server-github", "github-mcp-server", "api.githubcopilot.com/mcp"], "caps": ["untrusted_input", "private_data", "egress", "write"], "confidence": "medium", "note": "Issues and PRs are written by others; can read private repos and create issues, comments and pushes depending on token scope."},
+    {"id": "gitlab", "match": ["server-gitlab", "gitlab-mcp"], "caps": ["untrusted_input", "private_data", "egress", "write"], "confidence": "low", "note": "Similar exposure to the GitHub server."},
+    {"id": "git", "match": ["mcp-server-git", "server-git"], "caps": ["private_data", "write"], "confidence": "medium", "note": "Local repository access."},
+    {"id": "postgres", "match": ["server-postgres", "postgres-mcp", "pg-mcp"], "caps": ["private_data"], "confidence": "medium", "note": "Database reads. Write access depends on the account used."},
+    {"id": "sqlite", "match": ["mcp-server-sqlite", "server-sqlite"], "caps": ["private_data", "write"], "confidence": "medium", "note": "Local database file."},
+    {"id": "mysql", "match": ["mysql-mcp", "mcp-server-mysql"], "caps": ["private_data", "write"], "confidence": "low", "note": "Database access."},
+    {"id": "puppeteer", "match": ["server-puppeteer", "puppeteer-mcp"], "caps": ["untrusted_input", "egress", "exec"], "confidence": "medium", "note": "Drives a browser: reads pages, navigates anywhere, can run page JavaScript."},
+    {"id": "playwright", "match": ["@playwright/mcp", "playwright-mcp", "mcp-server-playwright"], "caps": ["untrusted_input", "egress", "exec"], "confidence": "medium", "note": "Drives a browser: reads pages, navigates anywhere, can evaluate JavaScript."},
+    {"id": "slack", "match": ["server-slack", "slack-mcp"], "caps": ["untrusted_input", "private_data", "egress"], "confidence": "medium", "note": "Reads channel messages written by others and can post messages."},
+    {"id": "gmail", "match": ["gmail-mcp", "mcp-gmail", "server-gmail"], "caps": ["untrusted_input", "private_data", "egress"], "confidence": "low", "note": "Inbound email is attacker-writable; can send mail."},
+    {"id": "desktop-commander", "match": ["desktop-commander", "desktopcommander"], "caps": ["private_data", "write", "exec", "egress"], "confidence": "medium", "note": "Shell commands and wide file access."},
+    {"id": "shell", "match": ["shell-mcp", "mcp-shell", "server-shell", "terminal-mcp"], "caps": ["exec", "private_data", "write", "egress"], "confidence": "low", "note": "Command execution implies file access and network."},
+    {"id": "docker", "match": ["docker-mcp", "mcp-server-docker"], "caps": ["exec", "write"], "confidence": "low", "note": "Container control."},
+    {"id": "brave-search", "match": ["server-brave-search", "brave-search-mcp"], "caps": ["untrusted_input"], "confidence": "medium", "note": "Search snippets come from third-party sites."},
+    {"id": "context7", "match": ["context7"], "caps": ["untrusted_input"], "confidence": "low", "note": "Documentation text from external sources."},
+    {"id": "memory", "match": ["server-memory"], "caps": ["write"], "confidence": "medium", "note": "Persistent local knowledge graph. Injected text can persist across sessions."},
+    {"id": "sequential-thinking", "match": ["sequential-thinking"], "caps": [], "confidence": "medium", "note": "No external reach."},
+    {"id": "time", "match": ["mcp-server-time", "server-time"], "caps": [], "confidence": "medium", "note": "No external reach."},
+    {"id": "everything", "match": ["server-everything"], "caps": [], "confidence": "medium", "note": "Reference test server."},
+    {"id": "notion", "match": ["notion-mcp", "mcp.notion.com"], "caps": ["untrusted_input", "private_data", "egress", "write"], "confidence": "low", "note": "Shared workspace pages can contain third-party text."},
+    {"id": "linear", "match": ["mcp.linear.app", "linear-mcp"], "caps": ["untrusted_input", "private_data", "write"], "confidence": "low", "note": "Tickets may contain third-party text."},
+    {"id": "sentry", "match": ["mcp.sentry.dev", "sentry-mcp"], "caps": ["untrusted_input", "private_data"], "confidence": "low", "note": "Error payloads can carry attacker-controlled strings."}
+  ],
+  "keyword_guesses": [
+    {"words": ["browser", "scrape", "crawl", "web-search", "websearch"], "caps": ["untrusted_input", "egress"]},
+    {"words": ["email", "mail", "imap", "smtp"], "caps": ["untrusted_input", "private_data", "egress"]},
+    {"words": ["filesystem", "files", "fs-"], "caps": ["private_data", "write"]},
+    {"words": ["sql", "database", "mongo", "redis"], "caps": ["private_data"]},
+    {"words": ["exec", "shell", "terminal", "bash"], "caps": ["exec", "private_data", "egress"]}
+  ]
+}

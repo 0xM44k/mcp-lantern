@@ -1,0 +1,3 @@
+{
+  "notes": {"caps": ["private_data", "write"], "note": "My own notes server: reads and edits my markdown notes. No network."}
+}

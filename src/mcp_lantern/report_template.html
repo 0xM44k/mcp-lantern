@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-motion="on">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Lantern report</title>
+<style>
+:root,[data-theme="dark"]{--bg:#0c0f11;--surface:#14181b;--raised:#1c2227;--line:#6b787f;--ink:#ece8df;--muted:#a3aab0;--signal:#e8a33d;--on-signal:#14100a;--trace:#6cc4b8;--ok:#6cb8ee;--err:#ff8a5c;--hair:rgba(107,120,127,.4)}
+[data-theme="light"]{--bg:#f3efe6;--surface:#ebe6da;--raised:#fbf9f4;--line:#6b665c;--ink:#1a1d1f;--muted:#4d5256;--signal:#8a5200;--on-signal:#fbf9f4;--trace:#0b6b61;--ok:#0b5f9a;--err:#a83a00;--hair:rgba(107,102,92,.4)}
+@media (prefers-color-scheme:light){:root:not([data-theme]){color-scheme:light}}
+*{box-sizing:border-box}
+html{color-scheme:dark light}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.6 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+.mono,code{font-family:"JetBrains Mono",ui-monospace,"SF Mono",Consolas,monospace}
+h1,h2,h3{font-family:"Newsreader",Georgia,"Times New Roman",serif;font-weight:400;margin:0}
+a{color:var(--signal)}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+@media (min-width:800px){.wrap{padding:0 48px}}
+header{padding:48px 0 24px;position:relative;border-bottom:1px solid var(--hair)}
+.beam{position:absolute;left:0;bottom:-1px;height:2px;width:100%;background:linear-gradient(90deg,transparent,var(--signal) 50%,transparent);transform:translateX(-100%);animation:sweep 1.6s cubic-bezier(.16,1,.3,1) .2s forwards}
+@keyframes sweep{to{transform:translateX(0)}}
+.beam{opacity:1}
+h1{font-size:clamp(44px,9vw,96px);line-height:.95;letter-spacing:-.02em}
+.scope{max-width:62ch;color:var(--muted);margin:16px 0 0}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}
+button{font:500 15px/20px "Instrument Sans",system-ui,sans-serif;min-height:44px;min-width:44px;padding:10px 16px;border-radius:4px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+button:hover{background:var(--raised)}
+button.primary{background:var(--signal);color:var(--on-signal);border-color:var(--signal)}
+section{padding:48px 0 0}
+h2{font-size:clamp(28px,4vw,36px);line-height:1.2}
+.sub{color:var(--muted);max-width:66ch;margin:8px 0 24px}
+.meta{font:13px/20px "JetBrains Mono",ui-monospace,Consolas,monospace;letter-spacing:.04em;color:var(--muted)}
+.servers{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.srv{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;padding:16px;background:var(--surface);border:1px solid var(--hair);border-radius:4px;align-items:start}
+.srv input{width:24px;height:24px;margin:2px;accent-color:var(--signal)}
+.srv label{font-weight:600;cursor:pointer;display:block;min-height:28px}
+.srv .launch{grid-column:2;word-break:break-all}
+.pills{grid-column:2;display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.pill{font:13px/20px "JetBrains Mono",ui-monospace,Consolas,monospace;padding:0 8px;border:1px solid var(--line);border-radius:2px;color:var(--ink)}
+.pill.none{color:var(--muted);border-style:dashed}
+.srv.off{opacity:.55}
+.lanes{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+.lane{background:var(--surface);border:1px solid var(--hair);border-radius:4px;padding:16px;min-height:140px}
+.lane h3{font-size:22px;line-height:28px}
+.lane p{margin:4px 0 12px;font-size:15px;line-height:22px;color:var(--muted)}
+.lane ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.lane li{border-left:0;padding:4px 8px;background:var(--raised);border-radius:2px;font:13px/20px "JetBrains Mono",ui-monospace,Consolas,monospace;word-break:break-all;animation:lamp .5s cubic-bezier(.16,1,.3,1)}
+@keyframes lamp{from{opacity:0;transform:translateY(4px)}}
+.lane .empty{color:var(--muted);background:none;padding:0;font-style:italic}
+.cards,.servers{grid-template-columns:minmax(0,1fr)}
+.cards{display:grid;gap:8px}
+.card,.srv{min-width:0;overflow-wrap:anywhere}
+.map{width:100%;height:auto;display:block;background:var(--surface);border:1px solid var(--hair);border-radius:4px;margin-bottom:8px}
+.map text{font:13px "JetBrains Mono",ui-monospace,Consolas,monospace;fill:var(--ink)}
+.map .cap text{font:600 14px "Instrument Sans",system-ui,sans-serif}
+.map .edge{stroke:var(--line);stroke-width:1;fill:none;opacity:.55}
+.map .hot{stroke:var(--signal);stroke-width:2;opacity:1;stroke-dasharray:6 6;animation:march 1.2s linear infinite}
+.map .node{fill:var(--raised);stroke:var(--line)}
+.map .node.hotn{stroke:var(--signal);stroke-width:2}
+.map .off text{fill:var(--muted)}
+@keyframes march{to{stroke-dashoffset:-12}}
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:4px;padding:24px}
+.card h3{font-size:28px;line-height:34px}
+.sev{font:600 13px/20px "JetBrains Mono",ui-monospace,Consolas,monospace;letter-spacing:.08em;text-transform:uppercase;padding:0 8px;border-radius:2px;border:1px solid currentColor;display:inline-block;margin-right:8px;vertical-align:middle}
+.sev.high{color:var(--err)}.sev.medium{color:var(--signal)}.sev.low{color:var(--trace)}.sev.info{color:var(--muted)}
+.roles{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;margin:12px 0}
+.roles dt{color:var(--muted)}.roles dd{margin:0}
+.ok{color:var(--ok)}
+.fixbox{background:var(--raised);border:1px solid var(--line);border-radius:4px;padding:24px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+footer{margin:96px 0 48px;padding-top:24px;border-top:1px solid var(--hair);color:var(--muted);font-size:15px;line-height:22px}
+html[data-motion="paused"] *,html[data-motion="paused"] *::before{animation:none!important;transition:none!important}
+html[data-motion="paused"] .beam{transform:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.beam{transform:none}}
+@media print{button{display:none}.beam{display:none}body{background:#fff;color:#000}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<p class="meta" id="meta"></p>
+<h1>Lantern</h1>
+<p class="scope" id="scope"></p>
+<div class="bar">
+<button type="button" id="theme" aria-pressed="false">Switch to light theme</button>
+<button type="button" id="motion" aria-pressed="false">Pause motion</button>
+</div>
+</div><span class="beam" aria-hidden="true"></span></header>
+<main class="wrap">
+<p class="sr" role="status" aria-live="polite" id="live"></p>
+
+<section aria-labelledby="h-servers">
+<h2 id="h-servers">Your servers</h2>
+<p class="sub">Untick a server to see what would change if you removed it. Nothing is written to your config; this page only recalculates.</p>
+<ul class="servers" id="servers"></ul>
+</section>
+
+<section aria-labelledby="h-lanes">
+<h2 id="h-lanes">What the model could reach</h2>
+<p class="sub">Each column is a capability. A server appears in every column it provides. These come from a name-based catalog, so check the confidence label beside each server.</p>
+<svg class="map" id="map" role="img" aria-label="Diagram"></svg>
+<div class="lanes" id="lanes"></div>
+</section>
+
+<section aria-labelledby="h-flows">
+<h2 id="h-flows">Combinations that matter</h2>
+<p class="sub" id="flow-sub"></p>
+<div class="cards" id="flows"></div>
+<div class="fixbox" id="fix" style="margin-top:8px"></div>
+</section>
+
+<section aria-labelledby="h-find">
+<h2 id="h-find">Configuration findings</h2>
+<p class="sub">Checks on how each server is launched. These do not change when you untick servers above.</p>
+<div class="cards" id="findings"></div>
+</section>
+
+<footer>
+<p id="limits"></p>
+</footer>
+</main>
+<script type="application/json" id="data">__DATA__</script>
+<script>
+(function(){
+"use strict";
+var D=JSON.parse(document.getElementById("data").textContent);
+var CAPS=["untrusted_input","private_data","egress","exec","write"];
+var LABEL={untrusted_input:"Untrusted input",private_data:"Private data",egress:"Egress",exec:"Command execution",write:"Write access"};
+var SEV={high:0,medium:1,low:2,info:3};
+var enabled={};D.servers.forEach(function(s){enabled[s.id]=true;});
+function h(tag,props,kids){var e=document.createElement(tag);if(props)Object.keys(props).forEach(function(k){if(k==="text")e.textContent=props[k];else e.setAttribute(k,props[k]);});(kids||[]).forEach(function(c){e.appendChild(c);});return e;}
+function clear(n){while(n.firstChild)n.removeChild(n.firstChild);}
+function flowsFor(en){var prov={};D.servers.forEach(function(s){if(en[s.id])s.caps.forEach(function(c){(prov[c]=prov[c]||[]).push(s.id);});});
+ var out=[];D.rules.forEach(function(r){if(r.roles.every(function(x){return prov[x]&&prov[x].length;})){var roles={};r.roles.forEach(function(x){roles[x]=prov[x].slice().sort();});out.push({rule:r.id,name:r.name,severity:r.severity,why:r.why,fix:r.fix,roles:roles});}});
+ out.sort(function(a,b){return SEV[a.severity]-SEV[b.severity]||(a.rule<b.rule?-1:1);});return out;}
+function highLeft(removed){var en={};D.servers.forEach(function(s){en[s.id]=!removed.some(function(r){return r===s.id;});});return flowsFor(en).filter(function(f){return f.severity==="high";});}
+function smallest(){var start=flowsFor(enabled).filter(function(f){return f.severity==="high";});if(!start.length)return {ids:[],exact:true};
+ var rel={};start.forEach(function(f){Object.keys(f.roles).forEach(function(r){f.roles[r].forEach(function(i){rel[i]=1;});});});var ids=Object.keys(rel).sort();
+ var base=D.servers.filter(function(s){return !enabled[s.id];}).map(function(s){return s.id;});
+ if(ids.length<=20){for(var k=1;k<=ids.length;k++){var hit=null;(function rec(i,pick){if(hit)return;if(pick.length===k){if(!highLeft(base.concat(pick)).length)hit=pick.slice();return;}for(var j=i;j<ids.length;j++){pick.push(ids[j]);rec(j+1,pick);pick.pop();if(hit)return;}})(0,[]);if(hit)return {ids:hit,exact:true};}}
+ var chosen=[];while(highLeft(base.concat(chosen)).length){var cnt={};highLeft(base.concat(chosen)).forEach(function(f){Object.keys(f.roles).forEach(function(r){f.roles[r].forEach(function(i){cnt[i]=(cnt[i]||0)+1;});});});var best=Object.keys(cnt).sort().reduce(function(a,b){return cnt[b]>cnt[a]?b:a;});chosen.push(best);}
+ return {ids:chosen,exact:false};}
+function pillsFor(s){var box=h("div",{"class":"pills"});if(!s.caps.length)box.appendChild(h("span",{"class":"pill none",text:s.basis==="unknown"?"capabilities unknown":"no reach"}));s.caps.forEach(function(c){box.appendChild(h("span",{"class":"pill",text:LABEL[c]}));});return box;}
+function renderServers(){var ul=document.getElementById("servers");clear(ul);D.servers.forEach(function(s,i){var id="s"+i;var cb=h("input",{type:"checkbox",id:id});cb.checked=enabled[s.id];cb.addEventListener("change",function(){enabled[s.id]=cb.checked;update();});
+ var li=h("li",{"class":"srv"+(enabled[s.id]?"":" off")},[cb,h("label",{"for":id,text:s.name}),h("div",{"class":"launch meta",text:s.launch}),pillsFor(s),h("div",{"class":"meta",style:"grid-column:2",text:"Source: "+s.basis+" · confidence "+s.confidence+" · "+s.note})]);ul.appendChild(li);});}
+function svg(tag,attrs,text){var e=document.createElementNS("http://www.w3.org/2000/svg",tag);Object.keys(attrs||{}).forEach(function(k){e.setAttribute(k,attrs[k]);});if(text!=null)e.textContent=text;return e;}
+function renderMap(){var m=document.getElementById("map");clear(m);var n=D.servers.length,rowH=44,H=Math.max(n,CAPS.length)*rowH+32,W=720;m.setAttribute("viewBox","0 0 "+W+" "+H);
+ var fl=flowsFor(enabled).filter(function(f){return f.severity==="high";});var hotS={},hotC={};fl.forEach(function(f){Object.keys(f.roles).forEach(function(r){hotC[r]=1;f.roles[r].forEach(function(i){hotS[i]=1;});});});
+ var sy=function(i){return 16+i*rowH+rowH/2;},cy=function(j){return 16+j*((H-32)/CAPS.length)+(H-32)/CAPS.length/2;};
+ var g=svg("g");D.servers.forEach(function(s,i){CAPS.forEach(function(c,j){if(s.caps.indexOf(c)>-1){var hot=enabled[s.id]&&hotS[s.id]&&hotC[c];g.appendChild(svg("path",{"class":"edge"+(hot?" hot":""),d:"M250 "+sy(i)+" C400 "+sy(i)+" 400 "+cy(j)+" 500 "+cy(j),style:enabled[s.id]?"":"opacity:.12"}));}});});m.appendChild(g);
+ D.servers.forEach(function(s,i){var on=enabled[s.id];var gr=svg("g",{"class":on?"":"off"});gr.appendChild(svg("rect",{"class":"node"+(on&&hotS[s.id]?" hotn":""),x:16,y:sy(i)-16,width:234,height:32,rx:4}));var label=s.name.length>26?s.name.slice(0,25)+"…":s.name;gr.appendChild(svg("text",{x:28,y:sy(i)+5},label));m.appendChild(gr);});
+ CAPS.forEach(function(c,j){var gr=svg("g",{"class":"cap"});gr.appendChild(svg("rect",{"class":"node"+(hotC[c]?" hotn":""),x:500,y:cy(j)-18,width:204,height:36,rx:4}));gr.appendChild(svg("text",{x:514,y:cy(j)+5},LABEL[c]));m.appendChild(gr);});
+ m.setAttribute("aria-label","Diagram connecting "+n+" servers to the capabilities they provide. "+(fl.length?"Amber dashed lines mark the capabilities and servers in a high-severity combination. The same information is listed below.":"No high-severity combination is active. The same information is listed below."));}
+function renderLanes(){var box=document.getElementById("lanes");clear(box);CAPS.forEach(function(c){var ul=h("ul");var any=false;D.servers.forEach(function(s){if(enabled[s.id]&&s.caps.indexOf(c)>-1){any=true;ul.appendChild(h("li",{text:s.name}));}});if(!any)ul.appendChild(h("li",{"class":"empty",text:"None enabled"}));box.appendChild(h("div",{"class":"lane"},[h("h3",{text:LABEL[c]}),h("p",{text:D.role_help[c]}),ul]));});}
+function renderFlows(){var box=document.getElementById("flows");clear(box);var fl=flowsFor(enabled);var hi=fl.filter(function(f){return f.severity==="high";}).length;
+ document.getElementById("flow-sub").textContent=fl.length?"These are combinations of capabilities, not proof of an attack: each needs an attacker to place instructions where the model will read them.":"No rule is complete with the servers currently ticked. That is not a guarantee of safety: servers marked unknown contribute nothing here.";
+ fl.forEach(function(f){var dl=h("dl",{"class":"roles"});Object.keys(f.roles).forEach(function(r){dl.appendChild(h("dt",{text:LABEL[r]}));dl.appendChild(h("dd",{"class":"mono",text:f.roles[r].join(", ")}));});
+  box.appendChild(h("article",{"class":"card"},[h("h3",null,[h("span",{"class":"sev "+f.severity,text:f.severity}),document.createTextNode(f.name)]),h("p",{text:f.why}),dl,h("p",null,[h("strong",{text:"Reduce it: "}),document.createTextNode(f.fix)]),h("p",{"class":"meta",text:f.rule})]));});
+ document.getElementById("live").textContent=fl.length+" flows active, "+hi+" high severity.";
+ var fx=document.getElementById("fix");clear(fx);var s=smallest();
+ if(!hi){fx.appendChild(h("p",{"class":"ok",text:"No high-severity flow is active in this selection."}));}
+ else{fx.appendChild(h("h3",{text:"Smallest change that clears every high flow"}));fx.appendChild(h("p",null,[document.createTextNode("Disable "),h("strong",{"class":"mono",text:s.ids.join(", ")}),document.createTextNode(s.exact?". No smaller set works.":". This is a small set, not proven smallest.")]));
+  var b=h("button",{type:"button","class":"primary",text:"Untick these to see the result"});b.addEventListener("click",function(){s.ids.forEach(function(i){enabled[i]=false;});update();});fx.appendChild(b);}
+ var any=D.servers.some(function(x){return !enabled[x.id];});if(any){var r=h("button",{type:"button",text:"Reset all servers",style:"margin-left:8px"});r.addEventListener("click",function(){D.servers.forEach(function(x){enabled[x.id]=true;});update();});fx.appendChild(r);}}
+function renderFindings(){var box=document.getElementById("findings");clear(box);if(!D.findings.length)box.appendChild(h("p",{text:"No configuration findings."}));D.findings.forEach(function(f){box.appendChild(h("article",{"class":"card"},[h("h3",null,[h("span",{"class":"sev "+f.severity,text:f.severity}),document.createTextNode(f.title)]),h("p",{text:f.detail}),h("p",null,[h("strong",{text:"Fix: "}),document.createTextNode(f.fix)]),h("p",{"class":"meta",text:f.rule+" · "+f.server+" · confidence "+f.confidence})]));});}
+function update(){renderServers();renderMap();renderLanes();renderFlows();}
+document.getElementById("meta").textContent="mcp-lantern "+D.version+" · "+D.servers.length+" servers · "+D.findings.length+" findings";
+document.getElementById("scope").textContent=D.scope+" Secret values are never shown.";
+document.getElementById("limits").textContent="Capabilities are inferred from server names and a small catalog, not from the servers' real tool lists. A clean result does not prove safety, and a flagged flow does not prove an attack. Lantern complements runtime monitoring and server-level review; it does not replace them.";
+var root=document.documentElement,tb=document.getElementById("theme"),mb=document.getElementById("motion");
+tb.addEventListener("click",function(){var light=root.getAttribute("data-theme")!=="light";root.setAttribute("data-theme",light?"light":"dark");tb.setAttribute("aria-pressed",String(light));tb.textContent=light?"Switch to dark theme":"Switch to light theme";});
+mb.addEventListener("click",function(){var p=root.getAttribute("data-motion")!=="paused";root.setAttribute("data-motion",p?"paused":"on");mb.setAttribute("aria-pressed",String(p));mb.textContent=p?"Resume motion":"Pause motion";});
+if(window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches){tb.click();}
+update();renderFindings();
+window.__lantern={flowsFor:flowsFor,enabled:enabled};
+})();
+</script>
+</body>
+</html>

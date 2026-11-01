@@ -1,0 +1,7 @@
+__pycache__/
+*.egg-info/
+build/
+dist/
+*.sarif
+lantern-report.html
+.pytest_cache/
